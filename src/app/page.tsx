@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Quote } from "lucide-react";
 import Link from "next/link";
 
 import { ConnectLinks } from "@/components/connect-links";
@@ -99,9 +99,7 @@ export default async function Home() {
       <Panel>
         <Reveal>
           <figure className="flex flex-col items-center gap-4 px-6 py-12 text-center">
-            <span aria-hidden="true" className="font-serif text-5xl leading-none text-muted-foreground/60">
-              &rdquo;
-            </span>
+            <Quote aria-hidden="true" className="size-8 fill-muted-foreground/50 text-transparent" />
             <blockquote className="max-w-md text-xl leading-snug italic text-foreground/90">
               &ldquo;{quote.text}&rdquo;
             </blockquote>
