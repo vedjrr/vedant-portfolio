@@ -8,6 +8,7 @@ import { LatestCommitCard } from "@/components/latest-commit";
 import { ProfileHeader } from "@/components/profile-header";
 import { ProjectCard } from "@/components/project-card";
 import { Reveal } from "@/components/reveal";
+import { TechTag } from "@/components/tech-tag";
 import { Panel, Separator } from "@/components/section";
 import { education, profile, projects, quote, stack } from "@/data/site";
 import { getContributions, getLatestCommit } from "@/lib/github";
@@ -79,11 +80,8 @@ export default async function Home() {
               <h3 className="mb-2 text-sm font-medium">{group.title}</h3>
               <ul className="flex flex-wrap gap-1.5">
                 {group.items.map((item) => (
-                  <li
-                    key={item}
-                    className="rounded-md border border-border bg-muted/60 px-2 py-0.5 font-mono text-xs text-muted-foreground"
-                  >
-                    {item}
+                  <li key={item}>
+                    <TechTag name={item} className="px-2 text-xs" />
                   </li>
                 ))}
               </ul>

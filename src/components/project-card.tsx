@@ -2,6 +2,7 @@ import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 
 import { GitHubIcon } from "@/components/icons";
+import { TechTag } from "@/components/tech-tag";
 import type { Project } from "@/data/site";
 import { cn } from "@/lib/utils";
 
@@ -49,11 +50,8 @@ export function ProjectCard({ project, priority }: { project: Project; priority?
 
         <ul className="mt-3 flex flex-wrap gap-1.5">
           {project.stack.map((s) => (
-            <li
-              key={s}
-              className="rounded-md border border-border bg-muted/60 px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground"
-            >
-              {s}
+            <li key={s}>
+              <TechTag name={s} />
             </li>
           ))}
         </ul>
