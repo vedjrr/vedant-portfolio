@@ -1,26 +1,265 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #09090b;
+  --card: #ffffff;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717b;
+  --border: #e4e4e7;
+  --edge: color-mix(in oklab, var(--border) 64%, var(--background));
+  --accent: #f4f4f5;
+  --pattern-foreground: color-mix(in oklab, #9f9fa9 60%, transparent);
+  --theme-wipe-duration: 0.65s;
+  --graph-0: #ebebed;
+  --graph-1: #c4c4c9;
+  --graph-2: #9f9fa9;
+  --graph-3: #62626b;
+  --graph-4: #18181b;
+}
+
+.dark {
+  --background: #060607;
+  --foreground: #fafafa;
+  --card: #111114;
+  --muted: #1f1f22;
+  --muted-foreground: #9f9fa9;
+  --border: #323238;
+  --edge: #242328;
+  --accent: #1f1f22;
+  --pattern-foreground: color-mix(in oklab, #52525c 60%, transparent);
+  --graph-0: #161619;
+  --graph-1: #2e2e33;
+  --graph-2: #56565e;
+  --graph-3: #9f9fa9;
+  --graph-4: #f4f4f5;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-edge: var(--edge);
+  --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: var(--font-geist-pixel-square);
+  --font-pixel: var(--font-geist-pixel-grid);
+  --font-pixel-line: var(--font-geist-pixel-line);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--edge);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+/* Horizontal lines that run edge to edge across the viewport. */
+.screen-line-before,
+.screen-line-after {
+  position: relative;
+}
+.screen-line-before::before,
+.screen-line-after::after {
+  content: "";
+  position: absolute;
+  left: -100vw;
+  width: 200vw;
+  height: 1px;
+  background: var(--edge);
+  z-index: -1;
+}
+.screen-line-before::before {
+  top: 0;
+}
+.screen-line-after::after {
+  bottom: 0;
+}
+
+/* Diagonal hatched separator between sections. */
+.separator {
+  position: relative;
+  height: 2rem;
+  width: 100%;
+  border-inline: 1px solid var(--edge);
+}
+.separator::before {
+  content: "";
+  position: absolute;
+  left: -100vw;
+  width: 200vw;
+  height: 100%;
+  z-index: -1;
+  background-image: repeating-linear-gradient(
+    315deg,
+    var(--pattern-foreground) 0,
+    var(--pattern-foreground) 1px,
+    transparent 0,
+    transparent 50%
+  );
+  background-size: 10px 10px;
+  border-block: 1px solid var(--edge);
+  opacity: 0.56;
+}
+
+.dot-pattern {
+  background-image: radial-gradient(var(--pattern-foreground) 1px, transparent 0);
+  background-size: 10px 10px;
+  background-position: center;
+}
+
+/* Theme wipe using the View Transitions API. */
+::view-transition-group(root) {
+  animation-timing-function: cubic-bezier(0.85, 0, 0.15, 1);
+}
+::view-transition-old(root) {
+  z-index: -1;
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-new(root) {
+  z-index: 1;
+  mix-blend-mode: normal;
+  clip-path: inset(0 0 100%);
+  animation: vt-new-wipe var(--theme-wipe-duration) forwards;
+}
+@keyframes vt-new-wipe {
+  from {
+    clip-path: inset(0 0 100%);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+
+/* Avatar glitch, played on click. */
+.avatar-glitch {
+  isolation: isolate;
+}
+.avatar-glitch__scanlines,
+.avatar-glitch__rgb {
+  opacity: 0;
+  pointer-events: none;
+}
+.avatar-glitch__scanlines {
+  mix-blend-mode: soft-light;
+  background:
+    linear-gradient(
+      180deg,
+      transparent 0%,
+      color-mix(in oklab, var(--foreground) 6%, transparent) 100%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      color-mix(in oklab, var(--foreground) 10%, transparent) 2px,
+      color-mix(in oklab, var(--foreground) 10%, transparent) 4px
+    );
+}
+.avatar-glitch__rgb {
+  mix-blend-mode: screen;
+}
+.avatar-glitch[data-glitching="true"] .avatar-glitch__trigger {
+  animation: avatar-glitch-body 0.52s steps(8, end) both;
+}
+.avatar-glitch[data-glitching="true"] .avatar-glitch__trigger img {
+  animation: avatar-glitch-image 0.52s steps(8, end) both;
+}
+.avatar-glitch[data-glitching="true"] .avatar-glitch__scanlines {
+  opacity: 1;
+  animation: avatar-glitch-scanlines 0.52s steps(10, end) both;
+}
+.avatar-glitch[data-glitching="true"] .avatar-glitch__rgb {
+  opacity: 1;
+  animation: avatar-glitch-rgb 0.52s steps(6, end) both;
+}
+@keyframes avatar-glitch-body {
+  0%, 100% { filter: none; transform: translate(0); }
+  10% { transform: translate(-4px); }
+  20% { transform: translate(4px); }
+  30% { filter: hue-rotate(90deg); transform: translate(-2px); }
+  40% { transform: translate(2px); }
+  50% { filter: none; transform: translate(-6px); }
+  60% { transform: translate(6px); }
+  70% { transform: translate(-2px); }
+  80% { filter: brightness(1.2); transform: translate(2px); }
+  90% { transform: translate(-1px); }
+}
+@keyframes avatar-glitch-image {
+  0%, 100% { clip-path: inset(0); transform: translate(0); }
+  15% { clip-path: inset(10% 0 85%); transform: translate(-8px); }
+  25% { clip-path: inset(80% 0 10%); transform: translate(8px); }
+  35% { clip-path: inset(40% 0 45%); transform: translate(-12px); }
+  45% { clip-path: inset(55% 0 35%); transform: translate(12px); }
+  55% { clip-path: inset(20% 0 75%); transform: translate(-6px); }
+  65% { clip-path: inset(70% 0 20%); transform: translate(6px); }
+  75% { clip-path: inset(30% 0 65%); transform: translate(-4px); }
+  85% { clip-path: inset(60% 0 35%); transform: translate(4px); }
+}
+@keyframes avatar-glitch-rgb {
+  0%, 100% { opacity: 0; transform: translate(0); }
+  15% { opacity: 0.8; background: #ff25714d; transform: translate(8px); }
+  35% { opacity: 0.6; background: #26e3ff4d; transform: translate(-8px); }
+  55% { opacity: 0.7; background: #70ff9940; transform: translate(4px); }
+  75% { opacity: 0.5; background: #d64fff33; transform: translate(-4px); }
+}
+@keyframes avatar-glitch-scanlines {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Sleeping pixel cat in the footer. */
+@keyframes cat-breathe {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.94); }
+}
+@keyframes cat-z {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.6); }
+  30% { opacity: 1; }
+  100% { opacity: 0; transform: translate(10px, -18px) scale(1.1); }
+}
+.cat-body {
+  transform-origin: bottom;
+  animation: cat-breathe 2.4s ease-in-out infinite;
+}
+.cat-z {
+  animation: cat-z 2.4s ease-out infinite;
+}
+.cat-z:nth-child(2) {
+  animation-delay: 0.8s;
+}
+.cat-z:nth-child(3) {
+  animation-delay: 1.6s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
