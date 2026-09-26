@@ -51,6 +51,26 @@ export function ContributionGraph({ days, total }: { days: Contribution[]; total
     return labels.filter((l, i) => !labels[i + 1] || labels[i + 1].index - l.index >= 3);
   }, [weeks]);
 
+  const stats = useMemo(() => {
+    let longest = 0;
+    let run = 0;
+    let best = days[0];
+    let active = 0;
+    for (const day of days) {
+      run = day.count > 0 ? run + 1 : 0;
+      longest = Math.max(longest, run);
+      if (day.count > 0) active++;
+      if (best && day.count > best.count) best = day;
+    }
+    // Today may not have a commit yet; the streak still counts from yesterday.
+    let current = 0;
+    for (let i = days.length - 1; i >= 0; i--) {
+      if (days[i].count > 0) current++;
+      else if (i !== days.length - 1) break;
+    }
+    return { longest, current, best, active };
+  }, [days]);
+
   useEffect(() => {
     const el = scroller.current;
     if (el) el.scrollLeft = el.scrollWidth;
@@ -61,12 +81,31 @@ export function ContributionGraph({ days, total }: { days: Contribution[]; total
 
   return (
     <div className="relative px-4 py-4">
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <Stat label="Contributions" value={total.toLocaleString("en-US")} hint="last 12 months" />
+        <Stat label="Current streak" value={`${stats.current}d`} hint="days in a row" />
+        <Stat label="Longest streak" value={`${stats.longest}d`} hint={`${stats.active} active days`} />
+        <Stat
+          label="Best day"
+          value={String(stats.best?.count ?? 0)}
+          hint={
+            stats.best
+              ? parse(stats.best.date).toLocaleDateString("en-GB", {
+                  day: "numeric",
+                  month: "short",
+                  timeZone: "UTC",
+                })
+              : ""
+          }
+        />
+      </div>
+
       <div className="mb-3 flex justify-end">
         <span className="flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
           <span
             className={
               today && today.count > 0
-                ? "size-1.5 rounded-full bg-green-500"
+                ? "halo size-1.5 rounded-full bg-brand"
                 : "size-1.5 rounded-full bg-muted-foreground/50"
             }
           />
@@ -164,6 +203,16 @@ export function ContributionGraph({ days, total }: { days: Contribution[]; total
           More
         </span>
       </div>
+    </div>
+  );
+}
+
+function Stat({ label, value, hint }: { label: string; value: string; hint: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-muted/40 px-3 py-2">
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <p className="font-pixel text-xl leading-tight text-brand tabular-nums">{value}</p>
+      <p className="font-mono text-[10px] text-muted-foreground/70">{hint}</p>
     </div>
   );
 }
