@@ -5,7 +5,7 @@ import {
   ArrowUpRight,
   Copy,
   FolderGit2,
-  House,
+  Hash,
   Moon,
   Search,
   Sparkles,
@@ -138,7 +138,7 @@ export function CommandMenu() {
 
         <Command.Group heading="Sections">
           {sections.map((s) => (
-            <Item key={s.id} icon={<House />} onSelect={() => goToSection(s.id)}>
+            <Item key={s.id} icon={<Hash />} onSelect={() => goToSection(s.id)}>
               {s.title}
             </Item>
           ))}
