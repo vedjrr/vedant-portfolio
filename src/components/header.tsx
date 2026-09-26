@@ -3,7 +3,7 @@
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { Monogram } from "@/components/icons";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -14,13 +14,18 @@ const nav = [
   { title: "Projects", href: "/projects" },
 ];
 
+const noopSubscribe = () => () => {};
+
 export function Header() {
   const pathname = usePathname();
-  const [isMac, setIsMac] = useState(true);
+  const isMac = useSyncExternalStore(
+    noopSubscribe,
+    () => /Mac|iPhone|iPad/.test(navigator.userAgent),
+    () => true,
+  );
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    setIsMac(/Mac|iPhone|iPad/.test(navigator.userAgent));
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
