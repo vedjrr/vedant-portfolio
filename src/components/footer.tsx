@@ -1,18 +1,19 @@
 import { profile } from "@/data/site";
 
-// Sleeping cat loaf on a 20 x 11 pixel grid. 1 = fur, 2 = shading.
+// Sleeping cat loaf on a 24 x 12 pixel grid. 1 = fur, 2 = shading.
 const CAT = [
-  "01000100000000000000",
-  "01101100000000000000",
-  "01111100000000000000",
-  "11111110000111111000",
-  "12211221011111111110",
-  "11111111111111111111",
-  "11112111111111111111",
-  "11111111111111111111",
-  "01111111111111111111",
-  "00111111111122222221",
-  "00011111111111111110",
+  "010000010000000000000000",
+  "011000110000000000000000",
+  "011101110000000000000000",
+  "011111110000000000000000",
+  "111111111000011111110000",
+  "112211221101111111111100",
+  "111111111111111111111110",
+  "111121111111111111111110",
+  "011111111111111111111111",
+  "001111111111111111111111",
+  "000111111122222222211111",
+  "000011111111111111111110",
 ];
 
 function PixelCat() {
@@ -23,7 +24,7 @@ function PixelCat() {
         <span className="cat-z absolute left-1.5">z</span>
         <span className="cat-z absolute left-3">z</span>
       </div>
-      <svg viewBox="0 0 20 11" className="cat-body h-8 w-auto" shapeRendering="crispEdges">
+      <svg viewBox="0 0 24 12" className="cat-body h-8 w-auto" shapeRendering="crispEdges">
         {CAT.flatMap((row, y) =>
           row.split("").map((c, x) =>
             c === "0" ? null : (
