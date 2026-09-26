@@ -47,7 +47,8 @@ export function ContributionGraph({ days, total }: { days: Contribution[]; total
         last = month;
       }
     });
-    return labels;
+    // Drop a label that would collide with the next one (a partial first month).
+    return labels.filter((l, i) => !labels[i + 1] || labels[i + 1].index - l.index >= 3);
   }, [weeks]);
 
   useEffect(() => {
