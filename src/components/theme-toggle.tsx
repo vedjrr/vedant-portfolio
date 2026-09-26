@@ -29,6 +29,7 @@ export function useThemeSwitch() {
     });
     // A hidden tab aborts the transition; make sure the theme still changes.
     transition.ready.catch(() => setTheme(next));
+    transition.finished.catch(() => {});
   }, [play, setTheme]);
 }
 
