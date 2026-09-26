@@ -13,11 +13,14 @@
   --accent: #f4f4f5;
   --pattern-foreground: color-mix(in oklab, #9f9fa9 60%, transparent);
   --theme-wipe-duration: 0.65s;
-  --graph-0: #ebebed;
-  --graph-1: #c4c4c9;
-  --graph-2: #9f9fa9;
-  --graph-3: #62626b;
-  --graph-4: #18181b;
+  --graph-0: #ebedf0;
+  --graph-1: #9be9a8;
+  --graph-2: #40c463;
+  --graph-3: #30a14e;
+  --graph-4: #216e39;
+  --brand: #1a7f37;
+  --brand-soft: color-mix(in oklab, var(--brand) 12%, transparent);
+  --glow: color-mix(in oklab, #2da44e 22%, transparent);
 }
 
 .dark {
@@ -30,11 +33,14 @@
   --edge: #242328;
   --accent: #1f1f22;
   --pattern-foreground: color-mix(in oklab, #52525c 60%, transparent);
-  --graph-0: #161619;
-  --graph-1: #2e2e33;
-  --graph-2: #56565e;
-  --graph-3: #9f9fa9;
-  --graph-4: #f4f4f5;
+  --graph-0: #161b22;
+  --graph-1: #0e4429;
+  --graph-2: #006d32;
+  --graph-3: #26a641;
+  --graph-4: #39d353;
+  --brand: #39d353;
+  --brand-soft: color-mix(in oklab, var(--brand) 14%, transparent);
+  --glow: color-mix(in oklab, #39d353 16%, transparent);
 }
 
 @theme inline {
@@ -46,6 +52,8 @@
   --color-border: var(--border);
   --color-edge: var(--edge);
   --color-accent: var(--accent);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-pixel-square);
   --font-pixel: var(--font-geist-pixel-grid);
@@ -68,8 +76,8 @@ body {
 }
 
 ::selection {
-  background: var(--foreground);
-  color: var(--background);
+  background: var(--brand);
+  color: #04120a;
 }
 
 /* Horizontal lines that run edge to edge across the viewport. */
@@ -271,4 +279,36 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Cursor spotlight on cards: --x and --y are set from pointer position. */
+.spotlight {
+  position: relative;
+  isolation: isolate;
+}
+.spotlight::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s;
+  background: radial-gradient(
+    320px circle at var(--x, 50%) var(--y, 50%),
+    var(--glow),
+    transparent 60%
+  );
+}
+.spotlight:hover::before {
+  opacity: 1;
+}
+
+/* Soft green halo behind a pulsing status dot. */
+@keyframes halo {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--brand) 45%, transparent); }
+  50% { box-shadow: 0 0 0 5px transparent; }
+}
+.halo {
+  animation: halo 2.2s ease-in-out infinite;
 }
