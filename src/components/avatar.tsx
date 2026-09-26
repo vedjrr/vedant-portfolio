@@ -38,13 +38,13 @@ export function Avatar({ src, alt }: { src: string; alt: string }) {
         aria-label="Glitch avatar"
         className="avatar-glitch__trigger relative block overflow-hidden rounded-2xl border border-border bg-background p-1 shadow-sm ring-1 ring-edge ring-offset-2 ring-offset-background"
       >
-        <span className="relative block size-28 overflow-hidden rounded-xl sm:size-36">
+        <span className="relative block size-24 overflow-hidden rounded-xl sm:size-36">
           <Image
             src={src}
             alt={alt}
             fill
             priority
-            sizes="(min-width: 640px) 144px, 112px"
+            sizes="(min-width: 640px) 144px, 96px"
             className="object-cover select-none"
             draggable={false}
           />

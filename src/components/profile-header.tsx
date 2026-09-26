@@ -40,9 +40,9 @@ export async function ProfileHeader() {
             <VisitorCounter />
           </div>
 
-          <h1 className="flex items-center gap-2 font-pixel-line text-3xl leading-tight tracking-tight sm:text-4xl">
+          <h1 className="font-pixel-line text-[26px] leading-tight tracking-tight sm:text-4xl">
             {profile.name}
-            <VerifiedIcon className="size-5 shrink-0 sm:size-6" />
+            <VerifiedIcon className="ml-2 inline size-5 align-[-2px] sm:size-6 sm:align-[-3px]" />
           </h1>
 
           <p className="font-mono text-sm text-muted-foreground">
