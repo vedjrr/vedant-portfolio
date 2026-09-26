@@ -4,15 +4,16 @@ import Link from "next/link";
 import { ConnectLinks } from "@/components/connect-links";
 import { ContributionGraph } from "@/components/contribution-graph";
 import { EducationList } from "@/components/education-list";
+import { LatestCommitCard } from "@/components/latest-commit";
 import { ProfileHeader } from "@/components/profile-header";
 import { ProjectCard } from "@/components/project-card";
 import { Reveal } from "@/components/reveal";
 import { Panel, Separator } from "@/components/section";
 import { education, profile, projects, quote, stack } from "@/data/site";
-import { getContributions } from "@/lib/github";
+import { getContributions, getLatestCommit } from "@/lib/github";
 
 export default async function Home() {
-  const contributions = await getContributions();
+  const [contributions, latest] = await Promise.all([getContributions(), getLatestCommit()]);
   const featured = projects.filter((p) => p.featured);
 
   return (
@@ -28,6 +29,7 @@ export default async function Home() {
             ))}
           </ul>
         </Reveal>
+        {latest && <LatestCommitCard commit={latest} />}
       </Panel>
       <Separator />
 
