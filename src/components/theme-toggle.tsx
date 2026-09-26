@@ -3,6 +3,7 @@
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useCallback, useEffect } from "react";
+import { flushSync } from "react-dom";
 
 import { haptic, useSound } from "@/hooks/use-sound";
 
@@ -23,7 +24,11 @@ export function useThemeSwitch() {
       setTheme(next);
       return;
     }
-    document.startViewTransition(() => setTheme(next));
+    const transition = document.startViewTransition(() => {
+      flushSync(() => setTheme(next));
+    });
+    // A hidden tab aborts the transition; make sure the theme still changes.
+    transition.ready.catch(() => setTheme(next));
   }, [play, setTheme]);
 }
 
