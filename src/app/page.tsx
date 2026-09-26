@@ -1,4 +1,4 @@
-import { ArrowRight, Quote } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Quote } from "lucide-react";
 import Link from "next/link";
 
 import { ConnectLinks } from "@/components/connect-links";
@@ -10,7 +10,7 @@ import { ProjectCard } from "@/components/project-card";
 import { Reveal } from "@/components/reveal";
 import { TechTag } from "@/components/tech-tag";
 import { Panel, Separator } from "@/components/section";
-import { education, profile, projects, quote, stack } from "@/data/site";
+import { education, GITHUB_USER, profile, projects, quote, stack } from "@/data/site";
 import { getContributions, getLatestCommit } from "@/lib/github";
 
 export default async function Home() {
@@ -39,7 +39,20 @@ export default async function Home() {
       </Panel>
       <Separator />
 
-      <Panel id="github" title="GitHub Activity">
+      <Panel
+        id="github"
+        title="GitHub Activity"
+        action={
+          <a
+            href={`https://github.com/${GITHUB_USER}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 rounded-full border border-brand/30 bg-brand-soft px-2.5 py-0.5 font-mono text-xs text-brand transition-colors hover:border-brand/60"
+          >
+            @{GITHUB_USER} <ArrowUpRight className="size-3" />
+          </a>
+        }
+      >
         {contributions ? (
           <ContributionGraph days={contributions.days} total={contributions.total} />
         ) : (
@@ -50,7 +63,15 @@ export default async function Home() {
       </Panel>
       <Separator />
 
-      <Panel id="projects" title="Projects">
+      <Panel
+        id="projects"
+        title="Projects"
+        action={
+          <span className="rounded-full border border-border bg-muted/60 px-2 py-0.5 font-mono text-xs text-muted-foreground">
+            {featured.length} of {projects.length}
+          </span>
+        }
+      >
         <div className="grid gap-4 p-4 sm:grid-cols-2">
           {featured.map((p, i) => (
             <Reveal key={p.id} delay={(i % 2) * 0.08}>
@@ -73,11 +94,14 @@ export default async function Home() {
       <Panel id="stack" title="Stack">
         {stack.map((group, i) => (
           <div key={group.title} className="screen-line-after flex gap-4 px-4 py-3">
-            <span className="w-6 shrink-0 font-mono text-xs text-muted-foreground/70">
+            <span className="w-6 shrink-0 font-pixel text-sm text-brand/80">
               {String(i + 1).padStart(2, "0")}
             </span>
             <div className="flex-1">
-              <h3 className="mb-2 text-sm font-medium">{group.title}</h3>
+              <h3 className="mb-2 text-sm font-medium">
+                {group.title}
+                <span className="ml-2 font-mono text-xs text-muted-foreground/70">{group.items.length}</span>
+              </h3>
               <ul className="flex flex-wrap gap-1.5">
                 {group.items.map((item) => (
                   <li key={item}>
