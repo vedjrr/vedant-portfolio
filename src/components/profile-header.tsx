@@ -12,10 +12,13 @@ export async function ProfileHeader() {
   return (
     <div className="border-x border-edge">
       <div className="dot-pattern screen-line-after flex h-28 items-center justify-center sm:h-32">
-        <p className="bg-background/80 px-2 text-center font-pixel text-sm leading-tight text-muted-foreground sm:text-base">
+        <p className="flex items-center gap-2.5 rounded-md bg-background/80 px-3 py-1 text-center font-pixel text-sm leading-tight text-muted-foreground sm:text-base">
+          <span className="halo size-2 shrink-0 rounded-full bg-brand" />
+          <span>
           {profile.banner[0]}
           <br />
           {profile.banner[1]}
+          </span>
         </p>
       </div>
 
