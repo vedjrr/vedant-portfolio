@@ -2,19 +2,27 @@ import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 
 import { GitHubIcon } from "@/components/icons";
+import { Spotlight } from "@/components/spotlight";
 import { TechTag } from "@/components/tech-tag";
 import type { Project } from "@/data/site";
 import { cn } from "@/lib/utils";
 
-const statusColor: Record<Project["status"], string> = {
-  Live: "bg-green-500",
-  Built: "bg-sky-500",
-  "In progress": "bg-amber-500",
+const statusStyle: Record<Project["status"], { dot: string; pill: string }> = {
+  Live: {
+    dot: "bg-green-500 halo",
+    pill: "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-400",
+  },
+  Built: { dot: "bg-sky-500", pill: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400" },
+  "In progress": {
+    dot: "bg-amber-500",
+    pill: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+  },
 };
 
 export function ProjectCard({ project, priority }: { project: Project; priority?: boolean }) {
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card p-1.5 shadow-xs transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg">
+    <Spotlight>
+    <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card/80 p-1.5 shadow-xs transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-0.5 hover:border-brand/35 hover:shadow-lg">
       <div className="relative aspect-[16/10] overflow-hidden rounded-lg border border-edge bg-muted">
         {project.image ? (
           <Image
@@ -38,8 +46,13 @@ export function ProjectCard({ project, priority }: { project: Project; priority?
             <h3 className="font-medium leading-snug">{project.name}</h3>
             <p className="text-xs text-muted-foreground">{project.tagline}</p>
           </div>
-          <span className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
-            <span className={cn("size-1.5 rounded-full", statusColor[project.status])} />
+          <span
+            className={cn(
+              "flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px]",
+              statusStyle[project.status].pill,
+            )}
+          >
+            <span className={cn("size-1.5 rounded-full", statusStyle[project.status].dot)} />
             {project.status}
           </span>
         </div>
@@ -88,5 +101,6 @@ export function ProjectCard({ project, priority }: { project: Project; priority?
         </div>
       </div>
     </article>
+    </Spotlight>
   );
 }
