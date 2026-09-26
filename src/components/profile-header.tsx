@@ -1,0 +1,63 @@
+import { Avatar } from "@/components/avatar";
+import { FlipWords } from "@/components/flip-words";
+import { GitHubIcon, VerifiedIcon } from "@/components/icons";
+import { VisitorCounter } from "@/components/visitor-counter";
+import { GITHUB_USER, profile } from "@/data/site";
+import { getGitHubProfile } from "@/lib/github";
+
+export async function ProfileHeader() {
+  const gh = await getGitHubProfile();
+
+  return (
+    <div className="border-x border-edge">
+      <div className="dot-pattern screen-line-after flex h-28 items-center justify-center sm:h-32">
+        <p className="bg-background/80 px-2 text-center font-pixel text-sm leading-tight text-muted-foreground sm:text-base">
+          {profile.banner[0]}
+          <br />
+          {profile.banner[1]}
+        </p>
+      </div>
+
+      <div className="screen-line-after relative flex gap-4 px-4 py-4 sm:gap-6">
+        {/* Corner crosses where the grid lines meet. */}
+        <span aria-hidden="true" className="absolute -top-[7px] -left-[7px] font-mono text-xs leading-none text-border">+</span>
+        <span aria-hidden="true" className="absolute -top-[7px] -right-[7px] font-mono text-xs leading-none text-border">+</span>
+
+        <Avatar src={profile.avatar} alt={profile.name} />
+
+        <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
+          <div className="flex items-center justify-between">
+            <a
+              href={`https://github.com/${GITHUB_USER}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
+              title="Public repositories"
+            >
+              <GitHubIcon className="size-3.5" />
+              {gh?.repos ?? ""}
+            </a>
+            <VisitorCounter />
+          </div>
+
+          <h1 className="flex items-center gap-2 font-pixel-line text-3xl leading-tight tracking-tight sm:text-4xl">
+            {profile.name}
+            <VerifiedIcon className="size-5 shrink-0 sm:size-6" />
+          </h1>
+
+          <p className="font-mono text-sm text-muted-foreground">
+            <FlipWords words={profile.flipWords} />
+          </p>
+
+          <p className="flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
+            <span className="relative flex size-1.5">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-500 opacity-75" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-green-500" />
+            </span>
+            {profile.status}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
