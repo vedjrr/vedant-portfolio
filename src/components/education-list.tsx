@@ -10,14 +10,14 @@ import { useSound } from "@/hooks/use-sound";
 export function EducationList({ items }: { items: Education[] }) {
   return (
     <div>
-      {items.map((item) => (
-        <EducationItem key={item.school} item={item} />
+      {items.map((item, i) => (
+        <EducationItem key={item.school} item={item} latest={i === 0} />
       ))}
     </div>
   );
 }
 
-function EducationItem({ item }: { item: Education }) {
+function EducationItem({ item, latest }: { item: Education; latest: boolean }) {
   const [open, setOpen] = useState(false);
   const tick = useSound("/audio/tick.wav");
 
@@ -25,9 +25,14 @@ function EducationItem({ item }: { item: Education }) {
     <div className="screen-line-after px-4 py-4">
       <div className="mb-2 flex items-center gap-3">
         <span className="flex size-6 items-center justify-center">
-          <span className="size-1.5 rounded-full bg-muted-foreground/60" />
+          <span className={latest ? "halo size-1.5 rounded-full bg-brand" : "size-1.5 rounded-full bg-muted-foreground/60"} />
         </span>
         <h3 className="font-medium">{item.school}</h3>
+        {latest && (
+          <span className="rounded-full border border-brand/30 bg-brand-soft px-2 py-0.5 font-mono text-[10px] text-brand">
+            Latest
+          </span>
+        )}
       </div>
       <button
         type="button"
@@ -38,7 +43,7 @@ function EducationItem({ item }: { item: Education }) {
         aria-expanded={open}
         className="group flex w-full items-start gap-3 text-left"
       >
-        <span className="flex size-6 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground">
+        <span className="flex size-6 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground transition-colors group-hover:border-brand/40 group-hover:text-brand">
           <GraduationCap className="size-3.5" />
         </span>
         <span className="flex-1">
