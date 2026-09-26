@@ -190,7 +190,7 @@ export function ContributionGraph({ days, total }: { days: Contribution[]; total
       )}
 
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-muted-foreground">
-        <span>{total.toLocaleString("en-US")} contributions in the last year</span>
+        <span>Hover a square for the day · refreshed hourly</span>
         <span className="flex items-center gap-1">
           Less
           {[0, 1, 2, 3, 4].map((l) => (
