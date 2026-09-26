@@ -1,5 +1,6 @@
 import { Avatar } from "@/components/avatar";
 import { FlipWords } from "@/components/flip-words";
+import { ScrambleText } from "@/components/scramble-text";
 import { GitHubIcon, VerifiedIcon } from "@/components/icons";
 import { VisitorCounter } from "@/components/visitor-counter";
 import { GITHUB_USER, profile } from "@/data/site";
@@ -41,7 +42,7 @@ export async function ProfileHeader() {
           </div>
 
           <h1 className="font-pixel-line text-[26px] leading-tight tracking-tight sm:text-4xl">
-            {profile.name}
+            <ScrambleText text={profile.name} />
             <VerifiedIcon className="ml-2 inline size-5 align-[-2px] sm:size-6 sm:align-[-3px]" />
           </h1>
 
@@ -51,8 +52,8 @@ export async function ProfileHeader() {
 
           <p className="flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
             <span className="relative flex size-1.5">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-500 opacity-75" />
-              <span className="relative inline-flex size-1.5 rounded-full bg-green-500" />
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand opacity-75" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-brand" />
             </span>
             {profile.status}
           </p>

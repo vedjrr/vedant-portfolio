@@ -5,6 +5,7 @@ import type { Metadata, Viewport } from "next";
 import { CommandMenu } from "@/components/command-menu";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
+import { ScrollProgress } from "@/components/scroll-progress";
 import { ThemeProvider } from "@/components/theme-provider";
 import { profile, site } from "@/data/site";
 
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-dvh overflow-x-hidden">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          <ScrollProgress />
           <Header />
           <main className="mx-auto max-w-3xl">{children}</main>
           <Footer />
