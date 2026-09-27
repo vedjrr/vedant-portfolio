@@ -19,6 +19,8 @@ export const site = {
   title: "Vedant Ambre · Business analyst who ships software",
   description:
     "Business analyst in Maynooth, Ireland who ships working software. Builder of Hold My Code, sourced case studies and data products.",
+  // The previous, macOS-style portfolio, linked from the footer as "Older versions".
+  olderVersion: "https://vedantambre.vercel.app",
 };
 
 export const profile = {
