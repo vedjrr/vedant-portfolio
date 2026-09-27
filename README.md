@@ -37,3 +37,4 @@ Edit content in `src/data/site.ts`.
 | --- | --- | --- |
 | `COUNTER_NAMESPACE` | `vedantambre-portfolio` | Abacus namespace for the visitor count |
 | `COUNTER_KEY` | `visits` | Abacus key for the visitor count |
+| `COUNTER_OFFSET` | `471` | Added to the Abacus count so the public count starts at 479 |
