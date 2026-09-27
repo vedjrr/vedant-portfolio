@@ -2,6 +2,7 @@ import { ArrowRight, ArrowUpRight, Quote } from "lucide-react";
 import Link from "next/link";
 
 import { ConnectLinks } from "@/components/connect-links";
+import { CountUp } from "@/components/count-up";
 import { ContributionGraph } from "@/components/contribution-graph";
 import { EducationList } from "@/components/education-list";
 import { LatestCommitCard } from "@/components/latest-commit";
@@ -68,7 +69,7 @@ export default async function Home() {
         title="Projects"
         action={
           <span className="rounded-full border border-border bg-muted/60 px-2 py-0.5 font-mono text-xs text-muted-foreground">
-            {featured.length} of {projects.length}
+            <CountUp value={featured.length} /> of <CountUp value={projects.length} />
           </span>
         }
       >

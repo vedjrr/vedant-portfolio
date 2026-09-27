@@ -3,6 +3,7 @@
 import { useInView } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { CountUp } from "@/components/count-up";
 import type { Contribution } from "@/lib/github";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -82,12 +83,12 @@ export function ContributionGraph({ days, total }: { days: Contribution[]; total
   return (
     <div className="relative px-4 py-4">
       <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Stat label="Contributions" value={total.toLocaleString("en-US")} hint="last 12 months" />
-        <Stat label="Current streak" value={`${stats.current}d`} hint="days in a row" />
-        <Stat label="Longest streak" value={`${stats.longest}d`} hint={`${stats.active} active days`} />
+        <Stat label="Contributions" value={total} hint="last 12 months" />
+        <Stat label="Current streak" value={stats.current} suffix="d" hint="days in a row" />
+        <Stat label="Longest streak" value={stats.longest} suffix="d" hint={`${stats.active} active days`} />
         <Stat
           label="Best day"
-          value={String(stats.best?.count ?? 0)}
+          value={stats.best?.count ?? 0}
           hint={
             stats.best
               ? parse(stats.best.date).toLocaleDateString("en-GB", {
@@ -207,11 +208,25 @@ export function ContributionGraph({ days, total }: { days: Contribution[]; total
   );
 }
 
-function Stat({ label, value, hint }: { label: string; value: string; hint: string }) {
+function Stat({
+  label,
+  value,
+  suffix,
+  hint,
+}: {
+  label: string;
+  value: number;
+  suffix?: string;
+  hint: string;
+}) {
   return (
     <div className="rounded-lg border border-border bg-muted/40 px-3 py-2">
       <p className="text-[11px] text-muted-foreground">{label}</p>
-      <p className="font-pixel text-xl leading-tight text-brand tabular-nums">{value}</p>
+      <CountUp
+        value={value}
+        suffix={suffix}
+        className="block font-pixel text-xl leading-tight text-brand tabular-nums"
+      />
       <p className="font-mono text-[10px] text-muted-foreground/70">{hint}</p>
     </div>
   );
