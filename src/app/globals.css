@@ -128,6 +128,40 @@ body {
   opacity: 0.56;
 }
 
+/* Lines sweep in left to right as they scroll into view. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .screen-line-before::before,
+    .screen-line-after::after {
+      transform-origin: left;
+      animation: line-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+    .separator::before {
+      animation: hatch-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 40%;
+    }
+  }
+}
+@keyframes line-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes hatch-draw {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+
 .dot-pattern {
   background-image: radial-gradient(var(--pattern-foreground) 1px, transparent 0);
   background-size: 10px 10px;
