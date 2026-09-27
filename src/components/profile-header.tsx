@@ -3,6 +3,7 @@ import { FlipWords } from "@/components/flip-words";
 import { ScrambleText } from "@/components/scramble-text";
 import { GitHubIcon, VerifiedIcon } from "@/components/icons";
 import { LocalClock } from "@/components/local-clock";
+import { PresenceBadge } from "@/components/presence-badge";
 import { VisitorCounter } from "@/components/visitor-counter";
 import { GITHUB_USER, profile } from "@/data/site";
 import { getGitHubProfile } from "@/lib/github";
@@ -45,6 +46,7 @@ export async function ProfileHeader() {
             <span className="flex items-center gap-3">
               <LocalClock />
               <VisitorCounter />
+              <PresenceBadge />
             </span>
           </div>
 
