@@ -148,14 +148,14 @@ export function ContributionGraph({ days, total }: { days: Contribution[]; total
                           const parent = scroller.current!.parentElement!.getBoundingClientRect();
                           setHover({ day, x: box.left - parent.left + CELL / 2, y: box.top - parent.top });
                         }}
-                        className="block rounded-[3px] transition-[opacity,scale] duration-300 hover:outline hover:outline-1 hover:outline-foreground/60"
+                        className="block rounded-[3px] transition-[background-color,scale] duration-500 hover:outline hover:outline-1 hover:outline-foreground/60"
                         style={{
                           width: CELL,
                           height: CELL,
-                          background: `var(--graph-${day.level})`,
-                          opacity: inView ? 1 : 0,
-                          scale: inView ? 1 : 0.4,
-                          transitionDelay: inView ? `${w * 8 + d * 10}ms` : "0ms",
+                          // Empty grid first, then colour floods in as a diagonal wave.
+                          background: inView ? `var(--graph-${day.level})` : "var(--graph-0)",
+                          scale: inView ? 1 : 0.7,
+                          transitionDelay: inView ? `${(w + d) * 14}ms` : "0ms",
                         }}
                       />
                     ) : (
