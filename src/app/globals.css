@@ -162,22 +162,37 @@ body {
   }
 }
 
+/* Project cards morph between the home page and /projects. */
+::view-transition-group(.morph) {
+  animation-duration: 400ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+::view-transition-image-pair(.morph) {
+  animation-name: via-blur;
+}
+@keyframes via-blur {
+  30% {
+    filter: blur(3px);
+  }
+}
+
 .dot-pattern {
   background-image: radial-gradient(var(--pattern-foreground) 1px, transparent 0);
   background-size: 10px 10px;
   background-position: center;
 }
 
-/* Theme wipe using the View Transitions API. */
-::view-transition-group(root) {
+/* Theme wipe using the View Transitions API. Scoped to theme switches so
+   page navigations keep the default crossfade. */
+html[data-theme-wipe] ::view-transition-group(root) {
   animation-timing-function: cubic-bezier(0.85, 0, 0.15, 1);
 }
-::view-transition-old(root) {
+html[data-theme-wipe] ::view-transition-old(root) {
   z-index: -1;
   animation: none;
   mix-blend-mode: normal;
 }
-::view-transition-new(root) {
+html[data-theme-wipe] ::view-transition-new(root) {
   z-index: 1;
   mix-blend-mode: normal;
   clip-path: inset(0 0 100%);

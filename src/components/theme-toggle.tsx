@@ -24,12 +24,14 @@ export function useThemeSwitch() {
       setTheme(next);
       return;
     }
+    const root = document.documentElement;
+    root.dataset.themeWipe = "";
     const transition = document.startViewTransition(() => {
       flushSync(() => setTheme(next));
     });
     // A hidden tab aborts the transition; make sure the theme still changes.
     transition.ready.catch(() => setTheme(next));
-    transition.finished.catch(() => {});
+    transition.finished.catch(() => {}).finally(() => delete root.dataset.themeWipe);
   }, [play, setTheme]);
 }
 
