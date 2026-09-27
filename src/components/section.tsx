@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { ScrambleText } from "@/components/scramble-text";
 import { cn } from "@/lib/utils";
 
 export function Separator({ className }: { className?: string }) {
@@ -24,7 +25,7 @@ export function Panel({
       {title && (
         <div className="screen-line-after flex items-center justify-between px-4">
           <h2 className="font-pixel-line text-3xl leading-[1.4] font-normal tracking-tight">
-            {title}
+            <ScrambleText text={title} playOn="view" />
           </h2>
           {action}
         </div>
