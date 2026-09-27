@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // The realtime Worker has its own tsconfig and Workers runtime types.
+    "worker/**",
   ]),
 ]);
 

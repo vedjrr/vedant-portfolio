@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "vedant-portfolio-realtime",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "durable_objects": {
+    "bindings": [{ "name": "LOBBY", "class_name": "Lobby" }]
+  },
+  // The Workers Free plan only runs SQLite-backed Durable Objects.
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Lobby"] }],
+  "vars": {
+    // Sites allowed to open the live connection, comma separated.
+    "ALLOWED_ORIGINS": "https://vedantambre.com,https://www.vedantambre.com,http://localhost:3000"
+  }
+  // REALTIME_SECRET is a secret: `npx wrangler secret put REALTIME_SECRET`.
+}
