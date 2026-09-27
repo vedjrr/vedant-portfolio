@@ -2,6 +2,7 @@ import { GeistSans } from "geist/font/sans";
 import { GeistPixelGrid, GeistPixelLine, GeistPixelSquare } from "geist/font/pixel";
 import type { Metadata, Viewport } from "next";
 
+import { ClawdParade } from "@/components/clawd-parade";
 import { CommandMenu } from "@/components/command-menu";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <main className="mx-auto max-w-3xl">{children}</main>
           <Footer />
           <CommandMenu />
+          <ClawdParade />
         </ThemeProvider>
       </body>
     </html>

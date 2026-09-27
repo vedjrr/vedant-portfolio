@@ -295,28 +295,82 @@ html[data-theme-wipe] ::view-transition-new(root) {
   to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
-/* Sleeping pixel cat in the footer. */
-@keyframes cat-breathe {
+/* Clawd in the footer: breathes while asleep, blinks while awake. */
+@keyframes clawd-breathe {
   0%, 100% { transform: scaleY(1); }
   50% { transform: scaleY(0.94); }
 }
-@keyframes cat-z {
+@keyframes clawd-z {
   0% { opacity: 0; transform: translate(0, 0) scale(0.6); }
   30% { opacity: 1; }
   100% { opacity: 0; transform: translate(10px, -18px) scale(1.1); }
 }
-.cat-body {
+@keyframes clawd-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.15); }
+}
+@keyframes clawd-heart {
+  from { opacity: 1; transform: translate(-50%, 0) scale(0.8); }
+  to { opacity: 0; transform: translate(-50%, -22px) scale(1.3); }
+}
+@keyframes clawd-step {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-0.45px); }
+}
+.clawd-sleep {
   transform-origin: bottom;
-  animation: cat-breathe 2.4s ease-in-out infinite;
+  animation: clawd-breathe 2.4s ease-in-out infinite;
 }
-.cat-z {
-  animation: cat-z 2.4s ease-out infinite;
+.clawd-z {
+  animation: clawd-z 2.4s ease-out infinite;
 }
-.cat-z:nth-child(2) {
+.clawd-z:nth-child(2) {
   animation-delay: 0.8s;
 }
-.cat-z:nth-child(3) {
+.clawd-z:nth-child(3) {
   animation-delay: 1.6s;
+}
+.clawd-look {
+  transition: transform 120ms ease-out;
+}
+.clawd-eye {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  transition: transform 220ms ease-out;
+}
+.clawd-eye[data-eyes="half"] {
+  transform: scaleY(0.5);
+}
+.clawd-eye[data-eyes="closed"] {
+  transform: scaleY(0.2);
+}
+.clawd-eye--blink {
+  animation: clawd-blink 3.8s ease-in-out infinite;
+}
+.clawd-heart {
+  animation: clawd-heart 0.7s ease-out forwards;
+}
+.clawd--walking .clawd-leg {
+  animation: clawd-step 0.32s steps(1, end) infinite;
+}
+.clawd--walking .clawd-leg--b {
+  animation-delay: -0.16s;
+}
+
+/* Konami parade: Clawds walk across the bottom of the screen. */
+@keyframes clawd-walk {
+  from { transform: translateX(-120px); }
+  to { transform: translateX(calc(100vw + 120px)); }
+}
+@keyframes clawd-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.clawd-walker {
+  animation: clawd-walk var(--walk, 7s) linear var(--delay, 0s) both;
+}
+.clawd-walker > * {
+  animation: clawd-bob 0.32s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
