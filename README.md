@@ -21,6 +21,12 @@ Personal portfolio of Vedant Ambre, business analyst who ships software.
 - Command menu on `⌘K`, `Ctrl+K` or `/`
 - Theme toggle on `D`, with a top-down wipe using the View Transitions API
 - Synthesized UI click sounds (Web Audio) and haptics on supported devices
+- Section titles scramble in, and hairlines and hatched separators sweep in on scroll
+- Contribution graph fills with colour in a diagonal wave, and stats count up
+- Staggered stack tags, magnetic connect links and a word-by-word quote reveal
+- Education timeline line that fills as you scroll
+- Project cards morph between the home page and the projects page (React `ViewTransition`)
+- All `motion` animations follow the OS reduced-motion setting
 - Projects page with every project
 
 ## Develop
