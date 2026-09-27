@@ -17,6 +17,7 @@ export const profile = {
   avatar: "/avatar.webp",
   email: "vedantambre.tech@gmail.com",
   location: "Maynooth, Ireland",
+  timeZone: "Europe/Dublin",
   banner: ["Open to business", "analyst roles"],
   flipWords: ["Business Analyst", "Ships software", "Maynooth, Ireland"],
   status: "Available · Business analyst roles",
@@ -41,8 +42,8 @@ export const socials: Social[] = [
     href: "https://linkedin.com/in/vedantambre",
     icon: "linkedin",
   },
-  { title: "Mail", href: `mailto:${profile.email}`, icon: "mail" },
   { title: "X", href: `https://x.com/${X_HANDLE}`, icon: "x" },
+  { title: "Mail", href: `mailto:${profile.email}`, icon: "mail" },
   { title: "Hold My Code", href: "https://holdmycode.xyz", icon: "globe" },
 ];
 

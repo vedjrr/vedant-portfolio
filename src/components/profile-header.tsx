@@ -2,6 +2,7 @@ import { Avatar } from "@/components/avatar";
 import { FlipWords } from "@/components/flip-words";
 import { ScrambleText } from "@/components/scramble-text";
 import { GitHubIcon, VerifiedIcon } from "@/components/icons";
+import { LocalClock } from "@/components/local-clock";
 import { VisitorCounter } from "@/components/visitor-counter";
 import { GITHUB_USER, profile } from "@/data/site";
 import { getGitHubProfile } from "@/lib/github";
@@ -41,7 +42,10 @@ export async function ProfileHeader() {
               <GitHubIcon className="size-3.5" />
               {gh?.repos ?? ""}
             </a>
-            <VisitorCounter />
+            <span className="flex items-center gap-3">
+              <LocalClock />
+              <VisitorCounter />
+            </span>
           </div>
 
           <h1 className="font-pixel-line text-[26px] leading-tight tracking-tight sm:text-4xl">

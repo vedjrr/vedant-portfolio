@@ -12,6 +12,7 @@ Personal portfolio of Vedant Ambre, business analyst who ships software.
 ## Features
 
 - Profile header with a click-to-glitch avatar, rotating letter-flip subtitle and live status
+- Live Maynooth clock (Europe/Dublin) ticking every second in the header
 - Visitor counter (`/api/visitors`, backed by the free Abacus counter)
 - GitHub contribution graph in GitHub greens, with streak and best-day stats, refreshed hourly
 - Live "last pushed" card with the latest public commit
