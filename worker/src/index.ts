@@ -2,35 +2,24 @@ import { DurableObject } from "cloudflare:workers";
 
 // One Durable Object ("lobby") holds every live connection to the portfolio.
 // It counts who is here, relays cursors between visitors and stores the
-// guestbook in its built-in SQLite database. Everything fits the Workers Free
-// plan, where going over a daily limit returns errors instead of a bill.
+// guestbook whiteboard in its built-in SQLite database. Everything fits the
+// Workers Free plan, where going over a daily limit returns errors instead of a bill.
 
 interface Env {
   LOBBY: DurableObjectNamespace<Lobby>;
   ALLOWED_ORIGINS: string;
-  REALTIME_SECRET: string;
+  ADMIN_SECRET: string;
 }
 
 type Visitor = { id: string; country: string; color: string };
 
-export type Entry = {
-  githubId: number;
-  login: string;
-  name: string | null;
-  message: string;
-  createdAt: number;
-  hidden?: boolean;
-};
+// A pen stroke or a typed note on the whiteboard, in board units. points is
+// flat: [x1, y1, x2, y2, ...]. Keep in step with Mark in the site's src/lib/guestbook.ts.
+type Pen = { kind: "pen"; color: number; points: number[] };
+type Note = { kind: "text"; color: number; x: number; y: number; text: string };
+export type Mark = (Pen | Note) & { id: string };
 
-type EntryRow = {
-  github_id: number;
-  login: string;
-  name: string | null;
-  message: string;
-  created_at: number;
-  updated_at: number;
-  hidden: number;
-};
+type DrawResult = { ok: true; mark: Mark } | { ok: false; error: string; status: number };
 
 // [id, x, y, path, color, country, anchor]. anchor is the element under the
 // cursor, as child indexes from <main> ("2.1.0"); x and y are its position
@@ -47,26 +36,52 @@ const FLUSH_MS = 80;
 const PRESENCE_MS = 1000;
 // A connection sending more than this per second is closed.
 const MAX_PER_SECOND = 30;
-const MAX_MESSAGE = 120;
-const EDIT_GAP_MS = 30_000;
+
+// Whiteboard. The first four must match the site's src/lib/guestbook.ts.
+const BOARD_WIDTH = 760;
+const BOARD_MAX_HEIGHT = 20_000;
+const INK_COUNT = 5;
+const MAX_POINTS = 600;
+const MAX_TEXT = 60;
+// Past this many marks the board is full.
+const MAX_MARKS = 5000;
+// Per visitor (IP address). The hourly count includes marks later undone, so
+// drawing and undoing in a loop can't burn through the free quota.
+const MARKS_PER_HOUR = 150;
+const MARKS_PER_DAY = 300;
+// Links invite spam, so notes are plain text only.
+const LINK = /https?:\/\/|www\.|\b[a-z0-9-]+\.(com|net|org|io|xyz|ru|cn|top|link|click|gg|me|co)\b/i;
 
 export class Lobby extends DurableObject<Env> {
   private moves = new Map<string, Move>();
   private flushTimer: ReturnType<typeof setTimeout> | undefined;
   private presenceTimer: ReturnType<typeof setTimeout> | undefined;
   private rates = new Map<string, { second: number; count: number }>();
+  private hourly = new Map<string, { hour: number; count: number }>();
+  private salt: string;
+  // The board as JSON and its mark count, kept while the object is awake.
+  private board: string | null = null;
+  private total: number | null = null;
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
-    ctx.storage.sql.exec(`CREATE TABLE IF NOT EXISTS entries (
-      github_id INTEGER PRIMARY KEY,
-      login TEXT NOT NULL,
-      name TEXT,
-      message TEXT NOT NULL,
-      created_at INTEGER NOT NULL,
-      updated_at INTEGER NOT NULL,
-      hidden INTEGER NOT NULL DEFAULT 0
+    const sql = ctx.storage.sql;
+    // The old GitHub guestbook's table. It never held a note in production.
+    sql.exec("DROP TABLE IF EXISTS entries");
+    // owner: hash of the random key the drawer's browser keeps, so they can undo.
+    // visitor: salted hash of the drawer's IP, for limits and moderation.
+    sql.exec(`CREATE TABLE IF NOT EXISTS marks (
+      id TEXT PRIMARY KEY,
+      data TEXT NOT NULL,
+      owner TEXT NOT NULL,
+      visitor TEXT NOT NULL,
+      created_at INTEGER NOT NULL
     )`);
+    sql.exec("CREATE INDEX IF NOT EXISTS marks_by_visitor ON marks (visitor, created_at)");
+    sql.exec("CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)");
+    const saved = sql.exec<{ value: string }>("SELECT value FROM meta WHERE key = 'salt'").toArray()[0];
+    this.salt = saved?.value ?? crypto.randomUUID();
+    if (!saved) sql.exec("INSERT INTO meta (key, value) VALUES ('salt', ?)", this.salt);
     // Answered by the runtime without waking the object.
     ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair("ping", "pong"));
   }
@@ -133,76 +148,89 @@ export class Lobby extends DurableObject<Env> {
     this.leave(ws);
   }
 
-  // Guestbook, called over RPC by the Worker below.
+  // Whiteboard, called over RPC by the Worker below.
 
-  list(includeHidden = false): Entry[] {
-    const rows = this.ctx.storage.sql
-      .exec<EntryRow>(
-        `SELECT * FROM entries ${includeHidden ? "" : "WHERE hidden = 0"}
-         ORDER BY created_at DESC LIMIT 500`,
-      )
-      .toArray();
-    return rows.map(toEntry);
+  /** Every mark, oldest first, as a JSON array. */
+  list(): string {
+    this.board ??= `[${this.ctx.storage.sql
+      .exec<{ data: string }>("SELECT data FROM marks ORDER BY created_at, id")
+      .toArray()
+      .map((row) => row.data)
+      .join(",")}]`;
+    return this.board;
   }
 
-  sign(input: { githubId: number; login: string; name: string | null; message: string }) {
-    const message = input.message.trim().slice(0, MAX_MESSAGE);
-    if (!message) return { ok: false as const, error: "Write something first." };
+  async draw(body: Record<string, unknown>, ip: string): Promise<DrawResult> {
+    const draft = readDraft(body);
+    if (typeof draft === "string") return { ok: false, error: draft, status: 400 };
+    const key = typeof body.key === "string" ? body.key : "";
+    if (key.length < 16 || key.length > 64) {
+      return { ok: false, error: "Reload the page and try again.", status: 400 };
+    }
+    const [owner, visitor] = await Promise.all([hash(key), hash(`${this.salt}:${ip}`)]);
 
-    const existing = this.ctx.storage.sql
-      .exec<EntryRow>("SELECT * FROM entries WHERE github_id = ?", input.githubId)
-      .toArray()[0];
+    // No awaits from here on, so nothing can slip in between the checks and the write.
+    const sql = this.ctx.storage.sql;
     const now = Date.now();
-    if (existing?.hidden) return { ok: false as const, error: "This account can't sign the guestbook." };
-    if (existing && now - existing.updated_at < EDIT_GAP_MS) {
-      return { ok: false as const, error: "Slow down. Try again in half a minute." };
+    const hour = Math.floor(now / 3_600_000);
+    const recent = this.hourly.get(visitor);
+    const thisHour = recent?.hour === hour ? recent.count : 0;
+    if (thisHour >= MARKS_PER_HOUR) {
+      return { ok: false, error: "Slow down a little. Try again later.", status: 429 };
     }
+    const today = sql
+      .exec<{ n: number }>(
+        "SELECT COUNT(*) AS n FROM marks WHERE visitor = ? AND created_at > ?",
+        visitor,
+        now - 86_400_000,
+      )
+      .one().n;
+    if (today >= MARKS_PER_DAY) {
+      return { ok: false, error: "That's plenty for today. Come back tomorrow.", status: 429 };
+    }
+    this.total ??= sql.exec<{ n: number }>("SELECT COUNT(*) AS n FROM marks").one().n;
+    if (this.total >= MAX_MARKS) return { ok: false, error: "The board is full.", status: 409 };
 
-    this.ctx.storage.sql.exec(
-      `INSERT INTO entries (github_id, login, name, message, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?)
-       ON CONFLICT(github_id) DO UPDATE SET
-         login = excluded.login, name = excluded.name,
-         message = excluded.message, updated_at = excluded.updated_at`,
-      input.githubId,
-      input.login,
-      input.name,
-      message,
-      now,
+    const mark: Mark = { id: crypto.randomUUID().replaceAll("-", "").slice(0, 12), ...draft };
+    sql.exec(
+      "INSERT INTO marks (id, data, owner, visitor, created_at) VALUES (?, ?, ?, ?, ?)",
+      mark.id,
+      JSON.stringify(mark),
+      owner,
+      visitor,
       now,
     );
-    const entry: Entry = {
-      githubId: input.githubId,
-      login: input.login,
-      name: input.name,
-      message,
-      createdAt: existing?.created_at ?? now,
-    };
-    this.broadcast(JSON.stringify({ type: "guestbook", entry }));
-    return { ok: true as const, entry };
+    this.hourly.set(visitor, { hour, count: thisHour + 1 });
+    this.total += 1;
+    this.board = null;
+    this.broadcast(JSON.stringify({ type: "board-add", mark }));
+    return { ok: true, mark };
   }
 
-  /** Removes a visitor's own note. Hidden notes stay, so a hidden account can't sign again. */
-  remove(githubId: number) {
-    this.ctx.storage.sql.exec("DELETE FROM entries WHERE github_id = ? AND hidden = 0", githubId);
-    this.broadcast(JSON.stringify({ type: "guestbook-remove", githubId }));
-  }
-
-  /** Moderation: hides a note and stops that account from signing again. */
-  setHidden(githubId: number, hidden: boolean) {
-    this.ctx.storage.sql.exec(
-      "UPDATE entries SET hidden = ? WHERE github_id = ?",
-      hidden ? 1 : 0,
-      githubId,
-    );
-    if (hidden) {
-      this.broadcast(JSON.stringify({ type: "guestbook-remove", githubId }));
-    } else {
-      const row = this.ctx.storage.sql
-        .exec<EntryRow>("SELECT * FROM entries WHERE github_id = ?", githubId)
-        .toArray()[0];
-      if (row) this.broadcast(JSON.stringify({ type: "guestbook", entry: toEntry(row) }));
+  /**
+   * Removes a mark and returns the ids that went. A visitor can remove their own
+   * marks with their key. The site owner can remove any mark, or with
+   * `everything`, every mark by the same visitor.
+   */
+  async erase(id: string, by: { key: string } | { admin: true; everything: boolean }) {
+    const sql = this.ctx.storage.sql;
+    const owner = "key" in by ? await hash(by.key) : null;
+    const rows =
+      owner !== null
+        ? sql.exec<{ id: string }>("DELETE FROM marks WHERE id = ? AND owner = ? RETURNING id", id, owner)
+        : "everything" in by && by.everything
+          ? sql.exec<{ id: string }>(
+              "DELETE FROM marks WHERE visitor = (SELECT visitor FROM marks WHERE id = ?) RETURNING id",
+              id,
+            )
+          : sql.exec<{ id: string }>("DELETE FROM marks WHERE id = ? RETURNING id", id);
+    const ids = rows.toArray().map((row) => row.id);
+    if (ids.length) {
+      if (this.total !== null) this.total -= ids.length;
+      this.board = null;
+      this.broadcast(JSON.stringify({ type: "board-remove", ids }));
     }
+    return ids;
   }
 
   // Presence and cursors.
@@ -275,15 +303,46 @@ export class Lobby extends DurableObject<Env> {
   }
 }
 
-function toEntry(row: EntryRow): Entry {
-  return {
-    githubId: row.github_id,
-    login: row.login,
-    name: row.name,
-    message: row.message,
-    createdAt: row.created_at,
-    ...(row.hidden ? { hidden: true } : {}),
-  };
+/** Checks a mark sent by a browser. Returns the clean mark, or why it was refused. */
+function readDraft(body: Record<string, unknown>): Pen | Note | string {
+  const color = Number(body.color);
+  if (!Number.isInteger(color) || color < 0 || color >= INK_COUNT) return "Pick a colour first.";
+
+  if (body.kind === "pen") {
+    const raw = body.points;
+    if (!Array.isArray(raw) || raw.length < 4 || raw.length > MAX_POINTS * 2 || raw.length % 2) {
+      return "That stroke couldn't be saved.";
+    }
+    const points: number[] = [];
+    for (const [i, n] of raw.entries()) {
+      if (typeof n !== "number" || !Number.isFinite(n)) return "That stroke couldn't be saved.";
+      points.push(clamp(n, i % 2 ? BOARD_MAX_HEIGHT : BOARD_WIDTH));
+    }
+    return { kind: "pen", color, points };
+  }
+
+  if (body.kind === "text") {
+    const text = String(body.text ?? "")
+      .replace(/\p{Cc}/gu, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!text) return "Write something first.";
+    if (text.length > MAX_TEXT) return `Keep it to ${MAX_TEXT} characters.`;
+    if (LINK.test(text)) return "Links aren't allowed on the board.";
+    const x = Number(body.x);
+    const y = Number(body.y);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return "That note couldn't be saved.";
+    return { kind: "text", color, x: clamp(x, BOARD_WIDTH), y: clamp(y, BOARD_MAX_HEIGHT), text };
+  }
+
+  return "That mark couldn't be saved.";
+}
+
+const clamp = (n: number, max: number) => Math.round(Math.max(0, Math.min(max, n)));
+
+async function hash(text: string) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return [...new Uint8Array(digest).slice(0, 16)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 function allowedOrigin(origin: string | null, env: Env) {
@@ -291,11 +350,22 @@ function allowedOrigin(origin: string | null, env: Env) {
   return allowed.includes("*") || (origin !== null && allowed.includes(origin));
 }
 
-/** Checks the shared secret the site's server sends. Constant time. */
+function corsHeaders(origin: string | null, env: Env): Record<string, string> {
+  const headers: Record<string, string> = { "Cache-Control": "no-store", Vary: "Origin" };
+  if (origin && allowedOrigin(origin, env)) {
+    headers["Access-Control-Allow-Origin"] = origin;
+    headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE";
+    headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization";
+    headers["Access-Control-Max-Age"] = "86400";
+  }
+  return headers;
+}
+
+/** Checks the site owner's ADMIN_SECRET, sent as a Bearer token. Constant time. */
 function authorized(request: Request, env: Env) {
-  if (!env.REALTIME_SECRET) return false;
+  if (!env.ADMIN_SECRET) return false;
   const given = new TextEncoder().encode(request.headers.get("Authorization") ?? "");
-  const expected = new TextEncoder().encode(`Bearer ${env.REALTIME_SECRET}`);
+  const expected = new TextEncoder().encode(`Bearer ${env.ADMIN_SECRET}`);
   return given.byteLength === expected.byteLength && crypto.subtle.timingSafeEqual(given, expected);
 }
 
@@ -316,39 +386,43 @@ export default {
       return lobby.fetch(new Request(request, { headers }));
     }
 
-    if (url.pathname === "/guestbook") {
+    // GET /board lists every mark. POST /board adds one. DELETE /board/:id removes one.
+    if (url.pathname === "/board" || url.pathname.startsWith("/board/")) {
+      const origin = request.headers.get("Origin");
+      const headers = corsHeaders(origin, env);
+      if (request.method === "OPTIONS") return new Response(null, { status: 204, headers });
+      const reply = (body: unknown, status = 200) => Response.json(body, { status, headers });
+      const id = url.pathname.slice("/board/".length);
+
+      if (!id && request.method === "GET") {
+        return new Response(await lobby.list(), {
+          headers: { ...headers, "Content-Type": "application/json" },
+        });
+      }
+
+      // Writes come from the site in a visitor's browser, or from the site owner.
       const admin = authorized(request, env);
-      if (request.method === "GET") {
-        return Response.json(await lobby.list(admin && url.searchParams.has("all")), {
-          headers: { "Cache-Control": "no-store" },
-        });
+      if (request.headers.has("Authorization") && !admin) {
+        return reply({ ok: false, error: "Wrong admin key." }, 401);
       }
-      if (!admin) return new Response("Unauthorized", { status: 401 });
+      if (!admin && !allowedOrigin(origin, env)) {
+        return reply({ ok: false, error: "Origin not allowed." }, 403);
+      }
+      const parsed: unknown = await request.json().catch(() => null);
+      const body = parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : {};
 
-      const body = await request.json<Record<string, unknown>>().catch(() => null);
-      const githubId = Number(body?.githubId);
-      if (!body || !Number.isSafeInteger(githubId)) {
-        return Response.json({ error: "Bad request" }, { status: 400 });
+      if (!id && request.method === "POST") {
+        const result = await lobby.draw(body, request.headers.get("CF-Connecting-IP") ?? "unknown");
+        return result.ok ? reply(result) : reply({ ok: false, error: result.error }, result.status);
       }
-
-      if (request.method === "POST") {
-        const result = await lobby.sign({
-          githubId,
-          login: String(body.login ?? "").slice(0, 39),
-          name: typeof body.name === "string" ? body.name.slice(0, 80) : null,
-          message: String(body.message ?? ""),
-        });
-        return Response.json(result, { status: result.ok ? 200 : 400 });
+      if (id && request.method === "DELETE") {
+        const ids = await lobby.erase(
+          id,
+          admin ? { admin: true, everything: url.searchParams.has("visitor") } : { key: String(body.key ?? "") },
+        );
+        return reply({ ok: ids.length > 0, ids }, ids.length ? 200 : 404);
       }
-      if (request.method === "DELETE") {
-        await lobby.remove(githubId);
-        return Response.json({ ok: true });
-      }
-      if (request.method === "PATCH") {
-        await lobby.setHidden(githubId, body.hidden !== false);
-        return Response.json({ ok: true });
-      }
-      return new Response("Method not allowed", { status: 405 });
+      return reply({ ok: false, error: "Method not allowed." }, 405);
     }
 
     return new Response("Not found", { status: 404 });

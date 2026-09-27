@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from "react";
 
-import type { GuestbookEntry } from "@/lib/guestbook";
+import type { Mark } from "@/lib/guestbook";
 
 export type Presence = { online: number; countries: [string, number][]; cursors: boolean };
 // [id, x, y, path, color, country, anchor]. See cursors.tsx for how x, y and
@@ -22,8 +22,8 @@ export type ServerMessage =
   | { type: "welcome"; id: string; color: string }
   | ({ type: "presence" } & Presence)
   | { type: "cursors"; moves: Move[] }
-  | { type: "guestbook"; entry: GuestbookEntry }
-  | { type: "guestbook-remove"; githubId: number };
+  | { type: "board-add"; mark: Mark }
+  | { type: "board-remove"; ids: string[] };
 
 type Listener = (msg: ServerMessage) => void;
 
@@ -47,7 +47,7 @@ const RealtimeContext = createContext<Realtime>({
 
 export const useRealtime = () => useContext(RealtimeContext);
 
-/** One shared connection to the realtime Worker for presence, cursors and the guestbook. */
+/** One shared connection to the realtime Worker for presence, cursors and the guestbook board. */
 export function RealtimeProvider({ children }: { children: ReactNode }) {
   const [presence, setPresence] = useState<Presence | null>(null);
   const [selfId, setSelfId] = useState<string | null>(null);

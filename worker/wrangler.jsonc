@@ -12,5 +12,6 @@
     // Sites allowed to open the live connection, comma separated.
     "ALLOWED_ORIGINS": "https://vedantambre.com,https://www.vedantambre.com,http://localhost:3000"
   }
-  // REALTIME_SECRET is a secret: `npx wrangler secret put REALTIME_SECRET`.
+  // ADMIN_SECRET (optional, for erasing guestbook marks) is a secret:
+  // `npx wrangler secret put ADMIN_SECRET`.
 }

@@ -1,2 +1,2 @@
-# Copy to .dev.vars for `npm run dev`. Must match REALTIME_SECRET in the site's .env.local.
-REALTIME_SECRET=change-me
+# Copy to .dev.vars for `npm run dev`. Open /guestbook#admin=<this value> to get the eraser.
+ADMIN_SECRET=change-me
