@@ -4,8 +4,10 @@ import type { Metadata, Viewport } from "next";
 
 import { ClawdParade } from "@/components/clawd-parade";
 import { CommandMenu } from "@/components/command-menu";
+import { Cursors } from "@/components/cursors";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
+import { RealtimeProvider } from "@/components/realtime-provider";
 import { ScrollProgress } from "@/components/scroll-progress";
 import { ThemeProvider } from "@/components/theme-provider";
 import { profile, site, X_HANDLE } from "@/data/site";
@@ -49,12 +51,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-dvh overflow-x-hidden">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <ScrollProgress />
-          <Header />
-          <main className="mx-auto max-w-3xl">{children}</main>
-          <Footer />
-          <CommandMenu />
-          <ClawdParade />
+          <RealtimeProvider>
+            <ScrollProgress />
+            <Header />
+            <main className="relative mx-auto max-w-3xl">
+              {children}
+              <Cursors />
+            </main>
+            <Footer />
+            <CommandMenu />
+            <ClawdParade />
+          </RealtimeProvider>
         </ThemeProvider>
       </body>
     </html>
