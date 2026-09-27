@@ -7,6 +7,7 @@ import {
   FolderGit2,
   Hash,
   Moon,
+  NotebookPen,
   Search,
   Sparkles,
   X,
@@ -134,6 +135,11 @@ export function CommandMenu() {
           <Item icon={<FolderGit2 />} onSelect={() => run(() => router.push("/projects"))}>
             Projects
           </Item>
+          {process.env.NEXT_PUBLIC_REALTIME_URL && (
+            <Item icon={<NotebookPen />} onSelect={() => run(() => router.push("/guestbook"))}>
+              Guestbook
+            </Item>
+          )}
         </Command.Group>
 
         <Command.Group heading="Sections">

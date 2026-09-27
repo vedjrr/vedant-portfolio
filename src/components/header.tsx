@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 const nav = [
   { title: "Home", href: "/" },
   { title: "Projects", href: "/projects" },
+  // Listed once the realtime Worker that stores the guestbook is configured.
+  ...(process.env.NEXT_PUBLIC_REALTIME_URL ? [{ title: "Guestbook", href: "/guestbook" }] : []),
 ];
 
 const noopSubscribe = () => () => {};
