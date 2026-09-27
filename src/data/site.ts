@@ -1,6 +1,16 @@
 export const GITHUB_USER = "vedjrr";
 export const X_HANDLE = "Vedjrrrr";
 
+// Public counters on Abacus (https://abacus.jasoncameron.dev), a free keyless
+// counting API. Counts are real: nothing is added on top.
+export const counters = {
+  base: "https://abacus.jasoncameron.dev",
+  namespace: "vedantambre-portfolio",
+  visits: "visits",
+  pets: "clawd-pets",
+  since: "Sep 2026",
+};
+
 const gh = (repo = "") =>
   `https://github.com/${GITHUB_USER}${repo ? `/${repo}` : ""}`;
 
