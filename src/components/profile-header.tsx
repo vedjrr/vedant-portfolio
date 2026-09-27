@@ -32,7 +32,7 @@ export async function ProfileHeader() {
         <Avatar src={profile.avatar} alt={profile.name} />
 
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between">
             <a
               href={`https://github.com/${GITHUB_USER}`}
               target="_blank"
@@ -43,7 +43,7 @@ export async function ProfileHeader() {
               <GitHubIcon className="size-3.5" />
               {gh?.repos ?? ""}
             </a>
-            <span className="flex items-center gap-3">
+            <span className="flex flex-col items-start gap-1">
               <LocalClock />
               <VisitorCounter />
               <PresenceBadge />
