@@ -32,8 +32,11 @@ type EntryRow = {
   hidden: number;
 };
 
-// [id, x, y, path, color, country]. x and y are null when the cursor leaves.
-type Move = [string, number | null, number | null, string, string, string];
+// [id, x, y, path, color, country, anchor]. anchor is the element under the
+// cursor, as child indexes from <main> ("2.1.0"); x and y are its position
+// inside that element in ten-thousandths of its width and height, so it lands
+// on the same content at any window width. x and y are null when the cursor leaves.
+type Move = [string, number | null, number | null, string, string, string, string];
 
 const COLORS = ["#f97316", "#22c55e", "#3b82f6", "#a855f7", "#ec4899", "#eab308", "#14b8a6", "#ef4444"];
 // Past this many visitors, only counts are shared: cursors stop to protect the free quota.
@@ -92,7 +95,7 @@ export class Lobby extends DurableObject<Env> {
       return;
     }
 
-    let msg: { t?: unknown; x?: unknown; y?: unknown; p?: unknown };
+    let msg: { t?: unknown; x?: unknown; y?: unknown; p?: unknown; a?: unknown };
     try {
       msg = JSON.parse(raw);
     } catch {
@@ -101,17 +104,19 @@ export class Lobby extends DurableObject<Env> {
     if (msg.t !== "c" || this.open().length > CURSOR_LIMIT) return;
 
     const path = typeof msg.p === "string" ? msg.p.slice(0, 80) : "/";
+    const anchor = typeof msg.a === "string" && /^[\d.]{0,32}$/.test(msg.a) ? msg.a : "";
     const hide = msg.x === null || msg.y === null;
     const x = Number(msg.x);
     const y = Number(msg.y);
     if (!hide && !(Number.isFinite(x) && Number.isFinite(y))) return;
     this.queueMove([
       visitor.id,
-      hide ? null : Math.round(Math.max(-2000, Math.min(4000, x))),
-      hide ? null : Math.round(Math.max(0, Math.min(100_000, y))),
+      hide ? null : Math.round(Math.max(-100_000, Math.min(100_000, x))),
+      hide ? null : Math.round(Math.max(-100_000, Math.min(100_000, y))),
       path,
       visitor.color,
       visitor.country,
+      anchor,
     ]);
   }
 
@@ -243,7 +248,7 @@ export class Lobby extends DurableObject<Env> {
     const visitor = ws.deserializeAttachment() as Visitor | null;
     if (visitor) {
       this.rates.delete(visitor.id);
-      this.queueMove([visitor.id, null, null, "", visitor.color, visitor.country]);
+      this.queueMove([visitor.id, null, null, "", visitor.color, visitor.country, ""]);
     }
     this.schedulePresence();
   }

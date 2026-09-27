@@ -14,8 +14,9 @@ import {
 import type { GuestbookEntry } from "@/lib/guestbook";
 
 export type Presence = { online: number; countries: [string, number][]; cursors: boolean };
-// [id, x, y, path, color, country]. x and y are null when that cursor left.
-export type Move = [string, number | null, number | null, string, string, string];
+// [id, x, y, path, color, country, anchor]. See cursors.tsx for how x, y and
+// anchor place a cursor. x and y are null when that cursor left.
+export type Move = [string, number | null, number | null, string, string, string, string];
 
 export type ServerMessage =
   | { type: "welcome"; id: string; color: string }
