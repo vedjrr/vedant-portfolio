@@ -1,4 +1,5 @@
 export const GITHUB_USER = "vedjrr";
+export const X_HANDLE = "Vedjrrrr";
 
 const gh = (repo = "") =>
   `https://github.com/${GITHUB_USER}${repo ? `/${repo}` : ""}`;
@@ -30,7 +31,7 @@ export const profile = {
 export type Social = {
   title: string;
   href: string;
-  icon: "github" | "linkedin" | "mail" | "globe";
+  icon: "github" | "linkedin" | "x" | "mail" | "globe";
 };
 
 export const socials: Social[] = [
@@ -41,6 +42,7 @@ export const socials: Social[] = [
     icon: "linkedin",
   },
   { title: "Mail", href: `mailto:${profile.email}`, icon: "mail" },
+  { title: "X", href: `https://x.com/${X_HANDLE}`, icon: "x" },
   { title: "Hold My Code", href: "https://holdmycode.xyz", icon: "globe" },
 ];
 

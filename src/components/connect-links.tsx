@@ -2,13 +2,14 @@
 
 import { Globe, Mail } from "lucide-react";
 
-import { GitHubIcon, LinkedInIcon } from "@/components/icons";
+import { GitHubIcon, LinkedInIcon, XIcon } from "@/components/icons";
 import { socials } from "@/data/site";
 import { haptic, useSound } from "@/hooks/use-sound";
 
 const tints: Record<string, string> = {
   github: "#39d353",
   linkedin: "#0a66c2",
+  x: "var(--foreground)",
   mail: "#ea4335",
   globe: "#a855f7",
 };
@@ -16,6 +17,7 @@ const tints: Record<string, string> = {
 const icons = {
   github: GitHubIcon,
   linkedin: LinkedInIcon,
+  x: XIcon,
   mail: Mail,
   globe: Globe,
 };

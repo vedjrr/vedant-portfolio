@@ -7,7 +7,7 @@ import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { ScrollProgress } from "@/components/scroll-progress";
 import { ThemeProvider } from "@/components/theme-provider";
-import { profile, site } from "@/data/site";
+import { profile, site, X_HANDLE } from "@/data/site";
 
 import "./globals.css";
 
@@ -24,7 +24,12 @@ export const metadata: Metadata = {
     images: [{ url: profile.avatar, width: 512, height: 512, alt: profile.name }],
     type: "website",
   },
-  twitter: { card: "summary", title: site.title, description: site.description },
+  twitter: {
+    card: "summary",
+    creator: `@${X_HANDLE}`,
+    title: site.title,
+    description: site.description,
+  },
 };
 
 export const viewport: Viewport = {

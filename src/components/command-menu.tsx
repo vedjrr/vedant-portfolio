@@ -15,7 +15,7 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
-import { GitHubIcon, LinkedInIcon, Monogram } from "@/components/icons";
+import { GitHubIcon, LinkedInIcon, Monogram, XIcon } from "@/components/icons";
 import { useThemeSwitch } from "@/components/theme-toggle";
 import { profile, site, socials } from "@/data/site";
 import { haptic, useSound } from "@/hooks/use-sound";
@@ -162,6 +162,8 @@ export function CommandMenu() {
                   <GitHubIcon />
                 ) : s.icon === "linkedin" ? (
                   <LinkedInIcon />
+                ) : s.icon === "x" ? (
+                  <XIcon />
                 ) : (
                   <ArrowUpRight />
                 )
