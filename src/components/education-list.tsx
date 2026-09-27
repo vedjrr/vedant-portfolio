@@ -1,8 +1,8 @@
 "use client";
 
 import { ChevronsUpDown, GraduationCap } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { AnimatePresence, motion, useScroll } from "motion/react";
+import { useRef, useState } from "react";
 
 import type { Education } from "@/data/site";
 import { useSound } from "@/hooks/use-sound";
@@ -11,20 +11,47 @@ export function EducationList({ items }: { items: Education[] }) {
   return (
     <div>
       {items.map((item, i) => (
-        <EducationItem key={item.school} item={item} latest={i === 0} />
+        <EducationItem
+          key={item.school}
+          item={item}
+          latest={i === 0}
+          last={i === items.length - 1}
+        />
       ))}
     </div>
   );
 }
 
-function EducationItem({ item, latest }: { item: Education; latest: boolean }) {
+function EducationItem({
+  item,
+  latest,
+  last,
+}: {
+  item: Education;
+  latest: boolean;
+  last: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const tick = useSound("/audio/tick.wav");
+  const ref = useRef<HTMLDivElement>(null);
+  // Fills the line down to the next dot as this entry scrolls up the screen.
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 75%", "end 60%"] });
 
   return (
-    <div className="screen-line-after px-4 py-4">
+    <div ref={ref} className="screen-line-after px-4 py-4">
+      {!last && (
+        <span
+          aria-hidden="true"
+          className="absolute top-7 left-7 h-full w-px -translate-x-1/2 bg-border"
+        >
+          <motion.span
+            className="block size-full origin-top bg-brand/70"
+            style={{ scaleY: scrollYProgress }}
+          />
+        </span>
+      )}
       <div className="mb-2 flex items-center gap-3">
-        <span className="flex size-6 items-center justify-center">
+        <span className="relative z-10 flex size-6 items-center justify-center">
           <span className={latest ? "halo size-1.5 rounded-full bg-brand" : "size-1.5 rounded-full bg-muted-foreground/60"} />
         </span>
         <h3 className="font-medium">{item.school}</h3>
